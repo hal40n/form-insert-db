@@ -1,0 +1,39 @@
+version: '3'
+services:
+  registerdb-nginx:
+    container_name: "registerdb-nginx"
+    build:
+      context: ./docker/nginx
+    depends_on:
+      - registerdb-app
+    ports:
+      - 80:80
+    volumes:
+      - ./:/src
+
+  registerdb-app:
+    container_name: "registerdb-app"
+    build:
+      context: ./docker/php
+    volumes:
+      - ./:/src
+      - /src/vendor
+      - ./docker/php/php.ini:/usr/local/etc/php/php.ini
+
+  registerdb-mysql:
+    image: mysql:8.0.33
+    command: --max_allowed_packet=32505856
+    container_name: "registerdb-mysql"
+    volumes:
+      - ./docker/mysql:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=root
+      - MYSQL_DATABASE=project_name
+    ports:
+      - 3306:3306
+
+  registerdb-redis:
+    image: redis:alpine
+    container_name: "registerdb-redis"
+    ports:
+      - 16379:6379
