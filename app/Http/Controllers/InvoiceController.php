@@ -19,20 +19,29 @@ class InvoiceController extends Controller
 
     public function store(Request $request)
     {
-        if($request->new_major_category) {
-            $existingMajorCategory = MajorCategory::where('major_category_name', $request->new_major_category)->first();
-        } else {
-            $existingMajorCategory = NULL;
+
+        $this->validate($request, [
+            'minor_category_name' => 'required',
+            'quantity' => 'required|numeric',
+            'amount' => 'required|numeric',
+        ]);
+
+        $majorCategory = $request->major_category_id;
+        $newMajorCategory = $request->new_major_category;
+
+        # 新しく追加されたカテゴリの存在チェック
+        $result = null;
+        if ($newMajorCategory) {
+            $result = MajorCategory::where('major_category_name', $newMajorCategory)->first();
         }
 
-        if (!$existingMajorCategory == NULL) {
-            $newMajorCategory = MajorCategory::create(['major_category_name' => $request->new_major_category]);
+        if ($newMajorCategory && !$result) {
+            $newMajorCategory = MajorCategory::create(['major_category_name' => $newMajorCategory]);
             $major_category_id = $newMajorCategory->id;
         } else {
-            $existingMajorCategory = MajorCategory::where('id', $request->major_category_id)->first();
-            $major_category_id = $existingMajorCategory->id;
+            $existingMajorCategory = MajorCategory::where('id', $majorCategory)->first();
+            $major_category_id = $existingMajorCategory ? $existingMajorCategory->id : null;
         }
-
 
         $minorCategory = MinorCategory::firstOrCreate(
             ['minor_category_name' => $request->minor_category_name]
